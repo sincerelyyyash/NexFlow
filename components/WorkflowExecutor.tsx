@@ -1,9 +1,11 @@
 
+import { useToast } from '@/hooks/use-toast';
 import React, { useState, ChangeEvent } from 'react';
 
 const WorkflowExecutor: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [workflowId, setWorkflowId] = useState<string>('');
+  const { toast } = useToast();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) setFile(e.target.files[0]);
@@ -26,9 +28,16 @@ const WorkflowExecutor: React.FC = () => {
     });
 
     if (response.ok) {
-      alert('Workflow executed successfully!');
+      toast({
+        title: "Workflow executed successfully!",
+      })
     } else {
       alert('Execution failed.');
+      toast({
+        title: "Execution failed.",
+        variant: "destructive"
+      })
+
     }
   };
 

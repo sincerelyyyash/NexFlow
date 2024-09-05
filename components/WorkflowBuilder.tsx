@@ -1,5 +1,6 @@
 
 "use client";
+import { useToast } from "@/hooks/use-toast";
 import React, { useState, useCallback } from "react";
 import ReactFlow, {
   Node,
@@ -67,11 +68,10 @@ export default function WorkflowBuilder() {
         return;
       }
 
-      // Ensure position is valid by checking if reactFlowInstance is defined
       const position: XYPosition = reactFlowInstance?.project({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
-      }) || { x: 0, y: 0 }; // Fallback position if undefined
+      }) || { x: 0, y: 0 };
 
       const newNode: Node = {
         id: uuidv4(),
@@ -85,11 +85,15 @@ export default function WorkflowBuilder() {
     [reactFlowInstance]
   );
 
+  const { toast } = useToast();
   const saveWorkflow = () => {
     const workflow = { nodes, edges };
     const workflowId = uuidv4();
     localStorage.setItem(workflowId, JSON.stringify(workflow));
-    alert(`Workflow saved with ID: ${workflowId}`);
+    toast({
+      title: "Workflow saved",
+      description: `ID: ${workflowId}`,
+    })
   };
 
   return (
@@ -169,12 +173,11 @@ export default function WorkflowBuilder() {
   );
 }
 
-// Custom node components (simplified for this example)
 function FilterDataNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-yellow-100">
+    <div className="border p-2 rounded bg-white text-black">
       <Handle type="target" position={Position.Top} />
-      <strong>{data.label}</strong>
+      <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -182,9 +185,9 @@ function FilterDataNode({ data }: { data: { label: string } }) {
 
 function WaitNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-green-100">
+    <div className="border p-2 rounded bg-white text-black">
       <Handle type="target" position={Position.Top} />
-      <strong>{data.label}</strong>
+      <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -192,9 +195,9 @@ function WaitNode({ data }: { data: { label: string } }) {
 
 function ConvertFormatNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-blue-100">
+    <div className="border p-2 rounded bg-white text-black">
       <Handle type="target" position={Position.Top} />
-      <strong>{data.label}</strong>
+      <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -202,9 +205,9 @@ function ConvertFormatNode({ data }: { data: { label: string } }) {
 
 function SendPostRequestNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-red-100">
+    <div className="border p-2 rounded bg-white text-black">
       <Handle type="target" position={Position.Top} />
-      <strong>{data.label}</strong>
+      <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

@@ -1,12 +1,12 @@
+"use client"
 import React from 'react';
-import Link from 'next/link';
-import WorkflowBuilder from '@/components/WorkflowBuilder';
+import WorkflowExecutor from '@/components/WorkflowExecutor';
 
-export default function Home() {
+export default function RunWorkflowPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow p-4">
-        <WorkflowBuilder />
+        <WorkflowExecutor />
       </main>
     </div>
   );
