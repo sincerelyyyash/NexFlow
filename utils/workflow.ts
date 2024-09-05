@@ -1,15 +1,11 @@
-// utils/workflow.ts
 import axios from 'axios';
 
-// ... (keep the existing getWorkflows function)
 export interface Workflow {
   id: string;
   name: string;
 }
 
-// Simulating an API call to fetch workflows
 export const getWorkflows = async (): Promise<Workflow[]> => {
-  // In a real application, this would be an API call
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve([
@@ -17,7 +13,7 @@ export const getWorkflows = async (): Promise<Workflow[]> => {
         { id: 'b3nM9xkL2', name: 'Data Analysis Workflow' },
         { id: 'p7Rq2zX5Y', name: 'ETL Process Workflow' },
       ]);
-    }, 500); // Simulating network delay
+    }, 500);
   });
 };
 
@@ -38,12 +34,10 @@ export const runWorkflow = async (file: File, workflowId: string): Promise<void>
 };
 
 export const executeWorkflow = async (file: File, workflowId: string): Promise<void> => {
-  // Implement the actual workflow execution logic here
   console.log(`Executing workflow ${workflowId} with file:`, file.name);
 
-  // Simulating the workflow steps
   await filterData(file);
-  await wait(60000); // 60 seconds delay
+  await wait(60000);
   const jsonData = await convertFormat(file);
   await sendPostRequest(jsonData);
 
@@ -52,7 +46,6 @@ export const executeWorkflow = async (file: File, workflowId: string): Promise<v
 
 async function filterData(file: File): Promise<void> {
   console.log('Filtering data...');
-  // Implement data filtering logic
 }
 
 async function wait(ms: number): Promise<void> {
@@ -62,8 +55,7 @@ async function wait(ms: number): Promise<void> {
 
 async function convertFormat(file: File): Promise<object> {
   console.log('Converting format from CSV to JSON...');
-  // Implement CSV to JSON conversion logic
-  return { key: 'value' }; // Placeholder
+  return { key: 'value' };
 }
 
 async function sendPostRequest(data: object): Promise<void> {

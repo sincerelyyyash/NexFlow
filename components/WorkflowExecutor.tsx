@@ -36,9 +36,7 @@ const WorkflowExecutor: React.FC = () => {
     <div className="p-4">
       <input type="file" onChange={handleFileChange} />
       <select onChange={handleWorkflowChange} className="mt-2">
-        {/* Fetch and list workflow IDs from the backend */}
         <option value="">Select Workflow</option>
-        {/* Populate with workflow IDs from an API call */}
       </select>
       <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 mt-2 rounded">Execute Workflow</button>
     </div>
