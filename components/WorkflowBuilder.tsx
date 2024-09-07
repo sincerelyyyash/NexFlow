@@ -22,6 +22,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 
+
 const nodeTypes = {
   filterData: FilterDataNode,
   wait: WaitNode,
@@ -35,12 +36,16 @@ const initialNodes: Node[] = [
     type: "input",
     data: { label: "Start" },
     position: { x: 250, y: 0 },
+    width: 150, // Add width
+    height: 40, // Add height
   },
   {
     id: "end",
     type: "output",
     data: { label: "End" },
     position: { x: 250, y: 300 },
+    width: 150, // Add width
+    height: 40, // Add height
   },
 ];
 
@@ -84,6 +89,8 @@ export default function WorkflowBuilder() {
         type,
         position,
         data: { label: type },
+        width: 150, // Set default width
+        height: 40, // Set default height
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -93,8 +100,10 @@ export default function WorkflowBuilder() {
 
   const { toast } = useToast();
 
+
+
   const saveWorkflow = async () => {
-    const userId = session?.user?.id;  // Ensure `id` exists on user
+    const userId = session?.user?.id;
 
     if (!userId) {
       toast({
@@ -105,7 +114,27 @@ export default function WorkflowBuilder() {
       return;
     }
 
-    const workflow = { userId, name, nodes, edges };
+    // Simplify node data for submission
+    const simplifiedNodes = nodes.map(node => ({
+      id: node.id,
+      type: node.type,
+      data: node.data,
+      position: node.position,
+      width: node.width || 150, // Default width if not provided
+      height: node.height || 40, // Default height if not provided
+    }));
+
+    const simplifiedEdges = edges.map(edge => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle || null,
+      targetHandle: edge.targetHandle || null,
+    }));
+
+    const workflow = { userId, name, nodes: simplifiedNodes, edges: simplifiedEdges };
+
+    console.log("Workflow Data:", workflow); // Debugging log
 
     try {
       const response = await fetch('/api/workflow/save', {
@@ -117,6 +146,8 @@ export default function WorkflowBuilder() {
       });
 
       const result = await response.json();
+      console.log("API Response:", result); // Debugging log
+
       if (result.success) {
         toast({
           title: "Workflow saved",
@@ -126,6 +157,7 @@ export default function WorkflowBuilder() {
         throw new Error(result.error);
       }
     } catch (error) {
+      console.error("Save Workflow Error:", error); // Debugging log
       toast({
         title: "Save Error",
         description: (error as Error).message,

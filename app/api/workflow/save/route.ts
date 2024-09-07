@@ -9,10 +9,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userId, name, nodes, edges } = body;
+    console.log("Received data:", body); // Log the received data
+
+    const { userId, name, nodes } = body;
 
     // Validate incoming data
-    if (!userId || !name || !Array.isArray(nodes) || !Array.isArray(edges)) {
+    if (!userId || !name || !Array.isArray(nodes)) {
+      console.log("Invalid data received:", { userId, name, nodes });
       return NextResponse.json({ success: false, error: 'Invalid data' }, { status: 400 });
     }
 
@@ -21,6 +24,7 @@ export async function POST(request: NextRequest) {
     try {
       convertedUserId = new mongoose.Types.ObjectId(userId);
     } catch (error) {
+      console.log("Error converting userId:", error);
       return NextResponse.json({ success: false, error: 'Invalid user ID format' }, { status: 400 });
     }
 
@@ -28,8 +32,10 @@ export async function POST(request: NextRequest) {
     const newWorkflow = new Workflow({
       userId: convertedUserId,
       name,
-      nodes,
-      edges,
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        type: node.type,
+      }))
     });
 
     await newWorkflow.save();
@@ -37,7 +43,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Workflow saved successfully',
-      workflowId: newWorkflow._id.toString(), // Convert ObjectId to string
+      workflowId: newWorkflow._id.toString(),
     });
 
   } catch (error) {

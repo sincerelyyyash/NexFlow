@@ -1,40 +1,72 @@
 
-import { useToast } from '@/hooks/use-toast';
-import React, { useState, ChangeEvent, useEffect } from 'react';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { FileUpload } from "@/components/file-upload";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 const WorkflowExecutor: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [workflowId, setWorkflowId] = useState<string>('');
-  const [workflowOptions, setWorkflowOptions] = useState<string[]>([]);
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [workflowOptions, setWorkflowOptions] = useState<{ _id: string; name: string }[]>([]);
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchWorkflows = async () => {
-      const response = await fetch('/api/workflows');
-      const data = await response.json();
-      setWorkflowOptions(data.workflowIds);
+      try {
+        const response = await fetch("/api/get-workflows");
+        const data = await response.json();
+
+        if (data.workflowIds.length > 0) {
+          const workflowsResponse = await fetch(`/api/workflows?ids=${data.workflowIds.join(",")}`);
+          const workflowsData = await workflowsResponse.json();
+          setWorkflowOptions(workflowsData.workflows);
+        } else {
+          toast({
+            title: "No workflows found.",
+            description: "Please add some workflows before trying to execute.",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching workflows:", error);
+        toast({
+          title: "Failed to fetch workflows.",
+          description: (error as Error).message,
+          variant: "destructive",
+        });
+      }
     };
     fetchWorkflows();
-  }, []);
+  }, [toast]);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) setFile(e.target.files[0]);
+  const handleFileUpload = (files: File[]) => {
+    setFile(files[0]);
   };
 
-  const handleWorkflowChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setWorkflowId(e.target.value);
+  const handleWorkflowChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setWorkflowId(e.target.value); // Set workflowId as a string
   };
 
   const handleSubmit = async () => {
-    if (!file || !workflowId) return;
+    if (!file || !workflowId) {
+      toast({
+        title: "Missing information",
+        description: "Please select a file and a workflow before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('workflowId', workflowId);
+    formData.append("file", file);
+    formData.append("workflowId", workflowId); // Use workflowId directly as a string
 
     try {
-      const response = await fetch('/api/execute', {
-        method: 'POST',
+      const response = await fetch("/api/execute", {
+        method: "POST",
         body: formData,
       });
 
@@ -42,6 +74,7 @@ const WorkflowExecutor: React.FC = () => {
       if (response.ok) {
         toast({
           title: "Workflow executed successfully!",
+          description: result.message || "Your workflow has been processed.",
         });
       } else {
         throw new Error(result.error);
@@ -55,18 +88,29 @@ const WorkflowExecutor: React.FC = () => {
     }
   };
 
+  const buttonClasses = `px-4 py-2 mt-2 rounded ${theme === 'dark'
+    ? 'bg-white text-black border hover:bg-gray-200'
+    : 'bg-black text-white hover:bg-gray-800'
+    }`;
+
   return (
     <div className="p-4">
-      <input type="file" onChange={handleFileChange} />
-      <select value={workflowId} onChange={handleWorkflowChange} className="mt-2">
+      <FileUpload onChange={handleFileUpload} />
+      <select
+        value={workflowId || ''}
+        onChange={handleWorkflowChange}
+        className="mt-2 block w-full p-2 border border-gray-300 rounded"
+      >
         <option value="">Select Workflow</option>
-        {workflowOptions.map(id => (
-          <option key={id} value={id}>{id}</option>
+        {workflowOptions.map(({ _id, name }) => (
+          <option key={_id} value={_id}>
+            {name}
+          </option>
         ))}
       </select>
-      <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 mt-2 rounded">
+      <Button onClick={handleSubmit} className={buttonClasses}>
         Execute Workflow
-      </button>
+      </Button>
     </div>
   );
 };
