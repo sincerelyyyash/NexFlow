@@ -17,8 +17,8 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "user@example.com" },
         password: { label: "Password", type: "password" },
-        name: { label: "Name", type: "text", placeholder: "John Doe" }, // for signup
-        isSignup: { label: "SignUp", type: "boolean" }, // to differentiate between signup and login
+        name: { label: "Name", type: "text", placeholder: "John Doe" },
+        isSignup: { label: "SignUp", type: "boolean" },
       },
       async authorize(credentials: any) {
         await dbConnect();
@@ -27,16 +27,13 @@ export const authOptions: NextAuthOptions = {
 
         try {
           if (isSignup) {
-            // Check if user already exists for sign-up
             const existingUser = await UserModel.findOne({ email }).exec();
             if (existingUser) {
               throw new Error("User already exists with this email.");
             }
 
-            // Hash password
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Create a new user
             const newUser = await UserModel.create({
               email,
               password: hashedPassword,
@@ -50,7 +47,6 @@ export const authOptions: NextAuthOptions = {
               image: newUser.image,
             } as CustomUser;
           } else {
-            // Sign in logic
             const user = await UserModel.findOne({ email }).exec();
 
             if (!user) {
