@@ -42,8 +42,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex items-center justify-center mt-40">
-      <div className="bg-white dark:bg-black shadow-lg dark:shadow-gray-700 rounded-lg p-8 w-full max-w-md">
+    <div className="flex items-center justify-center max-h-screen px-4 py-20">
+      <div className="bg-white dark:bg-black shadow-lg dark:shadow-gray-700 rounded-lg p-8 w-full max-w-sm sm:max-w-md">
         <h1 className="text-2xl font-semibold mb-6 text-center text-gray-900 dark:text-white">
           Sign Up
         </h1>
@@ -72,7 +72,7 @@ export default function SignUp() {
             required
             className="border border-gray-300 text-gray-900 dark:border-gray-600 dark:text-white"
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full py-2 mt-4">
             Sign Up
           </Button>
         </form>

@@ -22,7 +22,6 @@ import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 
-
 const nodeTypes = {
   filterData: FilterDataNode,
   wait: WaitNode,
@@ -100,8 +99,6 @@ export default function WorkflowBuilder() {
 
   const { toast } = useToast();
 
-
-
   const saveWorkflow = async () => {
     const userId = session?.user?.id;
 
@@ -167,19 +164,19 @@ export default function WorkflowBuilder() {
   };
 
   return (
-    <div className="h-[600px]">
+    <div className="p-4">
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Workflow Name"
+          placeholder="Add Workflow Name Here"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border p-2"
+          className="border p-2 w-full md:w-1/3"
         />
-        <div className="flex justify-between space-x-2 mt-2">
-          <div className="flex space-x-3 mt-2 ">
+        <div className="flex flex-col md:flex-row justify-between mt-2">
+          <div className="flex flex-wrap gap-2 mb-4 md:mb-0">
             <div
-              className="border p-2 cursor-move"
+              className="border p-2 cursor-move flex-1 min-w-[150px]"
               onDragStart={(event) =>
                 event.dataTransfer.setData("application/reactflow", "filterData")
               }
@@ -188,7 +185,7 @@ export default function WorkflowBuilder() {
               Filter Data
             </div>
             <div
-              className="border p-2 cursor-move"
+              className="border p-2 cursor-move flex-1 min-w-[150px]"
               onDragStart={(event) =>
                 event.dataTransfer.setData("application/reactflow", "wait")
               }
@@ -197,7 +194,7 @@ export default function WorkflowBuilder() {
               Wait
             </div>
             <div
-              className="border p-2 cursor-move"
+              className="border p-2 cursor-move flex-1 min-w-[150px]"
               onDragStart={(event) =>
                 event.dataTransfer.setData(
                   "application/reactflow",
@@ -209,7 +206,7 @@ export default function WorkflowBuilder() {
               Convert Format
             </div>
             <div
-              className="border p-2 cursor-move"
+              className="border p-2 cursor-move flex-1 min-w-[150px]"
               onDragStart={(event) =>
                 event.dataTransfer.setData(
                   "application/reactflow",
@@ -221,35 +218,38 @@ export default function WorkflowBuilder() {
               Send POST Request
             </div>
           </div>
-          <div className="flex gap-4 mt-6">
-            <Button onClick={saveWorkflow} className="bg-white hover:bg-black hover:text-white text-black font-bold py-2 px-4 rounded">
+          <div className="flex flex-col md:flex-row gap-2">
+            <Button onClick={saveWorkflow} className="w-full md:w-auto">
               Save Workflow
             </Button>
-            <Button onClick={() => router.push('/execute')} className="bg-black border hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded">
+            <Button onClick={() => router.push('/execute')} className="w-full md:w-auto">
               Execute Workflow
             </Button>
           </div>
         </div>
       </div>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={(changes) =>
-          setNodes((nds) => applyNodeChanges(changes, nds))
-        }
-        onEdgesChange={(changes) =>
-          setEdges((eds) => applyEdgeChanges(changes, eds))
-        }
-        onConnect={onConnect}
-        onInit={setReactFlowInstance}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        nodeTypes={nodeTypes}
-        fitView
-      >
-        <Controls />
-        <Background />
-      </ReactFlow>
+      <div className="relative h-[600px]">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={(changes) =>
+            setNodes((nds) => applyNodeChanges(changes, nds))
+          }
+          onEdgesChange={(changes) =>
+            setEdges((eds) => applyEdgeChanges(changes, eds))
+          }
+          onConnect={onConnect}
+          onInit={setReactFlowInstance}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          nodeTypes={nodeTypes}
+          fitView
+          className="w-full h-full"
+        >
+          <Controls />
+          <Background />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

@@ -94,7 +94,7 @@ const WorkflowExecutor: React.FC = () => {
     }`;
 
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-md mx-auto">
       <FileUpload onChange={handleFileUpload} />
       <select
         value={workflowId || ''}
