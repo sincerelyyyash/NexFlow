@@ -25,7 +25,6 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         await dbConnect();
 
-        console.log("Received credentials:", credentials); // Log credentials for debugging
 
         if (credentials && typeof credentials === 'object') {
           const { email, password, name, isSignup } = credentials as Credentials;

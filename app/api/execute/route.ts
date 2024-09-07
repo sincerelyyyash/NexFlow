@@ -8,12 +8,6 @@ import Workflow from '@/schemas/workflowSchema';
 import Execution from '@/schemas/WorkFlowExecutionSchema';
 import File from '@/schemas/fileSchema';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 function parseCSV(content: string): any[] {
   const lines = content.split('\n');
   const headers = lines[0].split(',').map(header => header.trim());
@@ -39,10 +33,8 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData();
       file = formData.get('file') as File | null;
 
-      // Ensure workflowId is always a string or undefined
       workflowId = formData.get('workflowId') as string | undefined;
 
-      // Check if file and workflowId exist
       if (!file || !workflowId) {
         return NextResponse.json(
           { success: false, error: 'File and Workflow ID are required' },
@@ -52,7 +44,6 @@ export async function POST(request: NextRequest) {
 
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      // Ensure the file name is always a string
       const fileName = file.name ?? 'unknown';
       const uploadDir = path.join(process.cwd(), 'uploads');
 
@@ -66,15 +57,12 @@ export async function POST(request: NextRequest) {
     } else {
       const text = await request.text();
 
-      // Correctly declare body by parsing text data
       body = parse(text);
 
-      // Access body values after parsing
       file = body.file;
       workflowId = body.workflowId as string | undefined;
     }
 
-    // Check again for workflowId before further use
     if (!file || !workflowId) {
       return NextResponse.json(
         { success: false, error: 'File and Workflow ID are required' },

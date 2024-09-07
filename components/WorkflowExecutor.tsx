@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -21,7 +22,7 @@ const WorkflowExecutor: React.FC = () => {
         const data = await response.json();
 
         if (data.workflowIds.length > 0) {
-          const workflowsResponse = await fetch(`/api/workflows?ids=${data.workflowIds.join(",")}`);
+          const workflowsResponse = await fetch(`/api/get-workflows?ids=${data.workflowIds.join(",")}`);
           const workflowsData = await workflowsResponse.json();
           setWorkflowOptions(workflowsData.workflows);
         } else {
