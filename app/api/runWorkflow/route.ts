@@ -1,4 +1,3 @@
-// app/api/runWorkflow/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { parseMultipartFormData } from '@/utils/multipart';
 import { executeWorkflow } from '@/utils/workflow';

@@ -19,6 +19,11 @@ const UserSchema = new Schema({
       ref: 'Workflow',
     },
   ],
+  password: {
+    type: String,
+    required: true,
+  }
 });
 
 export default models.User || model('User', UserSchema);
+
