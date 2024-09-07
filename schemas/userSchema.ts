@@ -1,11 +1,8 @@
 
 import { Schema, model, models } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const UserSchema = new Schema({
-  _id: {
-    type: Schema.Types.ObjectId,
-    auto: true,
-  },
   email: {
     type: String,
     required: true,
@@ -17,21 +14,23 @@ const UserSchema = new Schema({
   image: {
     type: String,
   },
-  workflows: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Workflow',
-    },
-  ],
   password: {
     type: String,
     required: true,
-  },
-}, { toJSON: { virtuals: true }, toObject: { virtuals: true } });
+  }
+});
 
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 12);
+  }
+  next();
+});
 
+// Add a virtual 'id' field
 UserSchema.virtual('id').get(function() {
-  return this && this._id ? this._id.toHexString() : null;
+  return this?._id.toHexString();
 });
 
 export default models.User || model('User', UserSchema);

@@ -1,6 +1,7 @@
 
 import { Schema, model, models } from 'mongoose';
 
+// Node schema to define nodes in the workflow
 const NodeSchema = new Schema({
   id: {
     type: String,
@@ -17,10 +18,11 @@ const NodeSchema = new Schema({
   },
   data: {
     label: { type: String },
-    additionalData: { type: Schema.Types.Mixed },
+    additionalData: { type: Schema.Types.Mixed }, // Use specific type if possible
   },
 });
 
+// Edge schema to define edges connecting nodes
 const EdgeSchema = new Schema({
   id: {
     type: String,
@@ -34,10 +36,11 @@ const EdgeSchema = new Schema({
     type: String,
     required: true,
   },
-  sourceHandle: String,
-  targetHandle: String,
+  sourceHandle: { type: String, default: null }, // Optional field
+  targetHandle: { type: String, default: null }, // Optional field
 });
 
+// Workflow schema to define a workflow document
 const WorkflowSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
@@ -48,8 +51,8 @@ const WorkflowSchema = new Schema({
     type: String,
     required: true,
   },
-  nodes: [NodeSchema],
-  edges: [EdgeSchema],
+  nodes: [NodeSchema], // Array of nodes
+  edges: [EdgeSchema], // Array of edges
   createdAt: {
     type: Date,
     default: Date.now,
@@ -57,3 +60,4 @@ const WorkflowSchema = new Schema({
 });
 
 export default models.Workflow || model('Workflow', WorkflowSchema);
+

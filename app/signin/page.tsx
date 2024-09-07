@@ -42,7 +42,7 @@ export default function SignIn() {
     <div className="flex items-center justify-center mt-40">
       <div className="bg-white dark:bg-black shadow-lg dark:shadow-gray-700 rounded-lg p-8 w-full max-w-md">
         <h1 className="text-2xl font-semibold mb-6 text-center text-gray-900 dark:text-white">
-          Sign Up
+          Sign In
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
@@ -62,16 +62,17 @@ export default function SignIn() {
             className="border border-gray-300 text-gray-900 dark:border-gray-600 dark:text-white"
           />
           <Button type="submit" className="w-full">
-            Sign Up
+            Sign In
           </Button>
         </form>
         <p className="mt-4 text-sm text-center text-gray-600 dark:text-gray-300">
           Do not have an account?{" "}
           <a href="/signup" className="text-blue-500 dark:text-blue-400">
-            Sign In
+            Sign Up
           </a>
         </p>
       </div>
     </div>
   );
 }
+

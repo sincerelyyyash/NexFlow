@@ -19,6 +19,8 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
 import { useSession } from "next-auth/react";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 const nodeTypes = {
   filterData: FilterDataNode,
@@ -49,6 +51,7 @@ export default function WorkflowBuilder() {
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [name, setName] = useState('');
+  const router = useRouter();
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -67,7 +70,7 @@ export default function WorkflowBuilder() {
       const reactFlowBounds = event.currentTarget.getBoundingClientRect();
       const type = event.dataTransfer.getData("application/reactflow");
 
-      if (typeof type === "undefined" || !type) {
+      if (!type) {
         return;
       }
 
@@ -141,48 +144,58 @@ export default function WorkflowBuilder() {
           onChange={(e) => setName(e.target.value)}
           className="border p-2"
         />
-        <div className="flex space-x-2 mt-2">
-          <div
-            className="border p-2 cursor-move"
-            onDragStart={(event) =>
-              event.dataTransfer.setData("application/reactflow", "filterData")
-            }
-            draggable
-          >
-            Filter Data
+        <div className="flex justify-between space-x-2 mt-2">
+          <div className="flex space-x-3 mt-2 ">
+            <div
+              className="border p-2 cursor-move"
+              onDragStart={(event) =>
+                event.dataTransfer.setData("application/reactflow", "filterData")
+              }
+              draggable
+            >
+              Filter Data
+            </div>
+            <div
+              className="border p-2 cursor-move"
+              onDragStart={(event) =>
+                event.dataTransfer.setData("application/reactflow", "wait")
+              }
+              draggable
+            >
+              Wait
+            </div>
+            <div
+              className="border p-2 cursor-move"
+              onDragStart={(event) =>
+                event.dataTransfer.setData(
+                  "application/reactflow",
+                  "convertFormat"
+                )
+              }
+              draggable
+            >
+              Convert Format
+            </div>
+            <div
+              className="border p-2 cursor-move"
+              onDragStart={(event) =>
+                event.dataTransfer.setData(
+                  "application/reactflow",
+                  "sendPostRequest"
+                )
+              }
+              draggable
+            >
+              Send POST Request
+            </div>
           </div>
-          <div
-            className="border p-2 cursor-move"
-            onDragStart={(event) =>
-              event.dataTransfer.setData("application/reactflow", "wait")
-            }
-            draggable
-          >
-            Wait
-          </div>
-          <div
-            className="border p-2 cursor-move"
-            onDragStart={(event) =>
-              event.dataTransfer.setData(
-                "application/reactflow",
-                "convertFormat"
-              )
-            }
-            draggable
-          >
-            Convert Format
-          </div>
-          <div
-            className="border p-2 cursor-move"
-            onDragStart={(event) =>
-              event.dataTransfer.setData(
-                "application/reactflow",
-                "sendPostRequest"
-              )
-            }
-            draggable
-          >
-            Send POST Request
+          <div className="flex gap-4 mt-6">
+            <Button onClick={saveWorkflow} className="bg-white hover:bg-black hover:text-white text-black font-bold py-2 px-4 rounded">
+              Save Workflow
+            </Button>
+            <Button onClick={() => router.push('/execute')} className="bg-black border hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded">
+              Execute Workflow
+            </Button>
           </div>
         </div>
       </div>
@@ -205,12 +218,6 @@ export default function WorkflowBuilder() {
         <Controls />
         <Background />
       </ReactFlow>
-      <button
-        onClick={saveWorkflow}
-        className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Save Workflow
-      </button>
     </div>
   );
 }

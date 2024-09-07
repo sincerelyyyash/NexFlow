@@ -21,11 +21,11 @@ export function Hero() {
           Create your own WorkFlow with NexFlow built with NextJs and ReactFlow
         </p>
         <div className="flex justify-center gap-4 mt-6">
-          <Button onClick={() => router.push('/workflow')} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Create Workflow
+          <Button onClick={() => router.push('/signin')} className="bg-white hover:bg-black hover:text-white text-black font-bold py-2 px-4 rounded">
+            Login
           </Button>
-          <Button onClick={() => router.push('/execute')} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Execute Workflow
+          <Button onClick={() => router.push('/signup')} className="bg-black border hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded">
+            Sign Up
           </Button>
         </div>
       </div>
