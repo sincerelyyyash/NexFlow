@@ -1,51 +1,96 @@
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { IncomingForm } from 'formidable';
-import fs from 'fs';
-import { parse } from 'csv-parse/sync';
-import axios from 'axios';
+import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import dbConnect from '@/lib/dbConnect';
+import Workflow from '@/schemas/workflowSchema';
+import Execution from '@/schemas/WorkFlowExecutionSchema';
+import File from '@/schemas/fileSchema';
+import { readFile } from 'fs/promises';
+import path from 'path';
 
-export const config = {
-  api: {
-    bodyParser: false, 
-  },
-};
+export async function POST(request: NextRequest) {
+  await dbConnect();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const form = new IncomingForm();
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const workflowId = formData.get('workflowId') as string;
 
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to parse form data' });
-      }
+    if (!file || !workflowId) {
+      return NextResponse.json({ success: false, error: 'File and Workflow ID are required' }, { status: 400 });
+    }
 
-      const file = files.file?.[0]; // Get the file from the files object
-      const workflowId = fields.workflowId?.[0]; // Get workflowId from fields
+    const workflow = await Workflow.findById(workflowId).populate('userId');
+    if (!workflow) {
+      return NextResponse.json({ success: false, error: 'Workflow not found' }, { status: 404 });
+    }
 
-      if (!file || !workflowId) {
-        return res.status(400).json({ error: 'Missing file or workflowId' });
-      }
+    const filePath = path.join(process.cwd(), 'uploads', file.name);
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    await readFile(filePath, { encoding: 'utf8' });
+    await writeFile(filePath, fileBuffer);
 
-      try {
-        const csvData = fs.readFileSync(file.filepath, 'utf8');
-        const records = parse(csvData, { columns: true });
-
-
-        const workflows: any[] = []; 
-
-        const workflow = workflows.find(w => w.id === workflowId);
-        if (!workflow) return res.status(404).json({ error: 'Workflow not found' });
-
-        await axios.post('https://requestcatcher.com/', records);
-
-        res.status(200).json({ message: 'Workflow executed successfully' });
-      } catch (error) {
-        res.status(500).json({ error: 'Failed to execute workflow' });
-      }
+    const newFile = new File({
+      userId: workflow.userId,
+      fileName: file.name,
+      filePath: filePath,
     });
-  } else {
-    res.status(405).end();
+    await newFile.save();
+
+    const execution = new Execution({
+      workflowId: workflow._id,
+      userId: workflow.userId,
+      fileName: file.name,
+      status: 'processing',
+    });
+    await execution.save();
+
+    const results: any[] = [];
+    const nodeOperations: { [key: string]: (data: any) => Promise<any> } = {
+      filterData: async (data: any) => {
+        return data.filter((item: any) => item.isValid);
+      },
+      wait: async (data: any) => {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return data;
+      },
+      convertFormat: async (data: any) => {
+        return data.map((item: any) => ({ ...item, converted: true }));
+      },
+      sendPostRequest: async (data: any) => {
+        const response = await fetch('https://example.com/api/endpoint', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        return response.json();
+      },
+    };
+
+    let currentData = JSON.parse(await readFile(filePath, 'utf8'));
+
+    for (const node of workflow.nodes) {
+      if (node.type in nodeOperations) {
+        currentData = await nodeOperations[node.type](currentData);
+      }
+    }
+
+    execution.status = 'completed';
+    execution.result = results;
+    await execution.save();
+
+    return NextResponse.json({ success: true, message: 'Workflow executed successfully' });
+
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false, error: 'An error occurred during execution' }, { status: 500 });
   }
+}
+
+async function writeFile(filePath: string, data: Buffer) {
+  const fs = require('fs/promises');
+  await fs.writeFile(filePath, data);
 }
 

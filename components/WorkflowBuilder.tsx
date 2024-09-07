@@ -18,6 +18,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { v4 as uuidv4 } from "uuid";
+import { useSession } from "next-auth/react";
 
 const nodeTypes = {
   filterData: FilterDataNode,
@@ -42,10 +43,12 @@ const initialNodes: Node[] = [
 ];
 
 export default function WorkflowBuilder() {
+  const { data: session } = useSession();
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
+  const [name, setName] = useState('');
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -86,20 +89,59 @@ export default function WorkflowBuilder() {
   );
 
   const { toast } = useToast();
-  const saveWorkflow = () => {
-    const workflow = { nodes, edges };
-    const workflowId = uuidv4();
-    localStorage.setItem(workflowId, JSON.stringify(workflow));
-    toast({
-      title: "Workflow saved",
-      description: `ID: ${workflowId}`,
-    })
+
+  const saveWorkflow = async () => {
+    const userId = session?.user?.id;  // Ensure `id` exists on user
+
+    if (!userId) {
+      toast({
+        title: "Save Error",
+        description: "User not authenticated.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const workflow = { userId, name, nodes, edges };
+
+    try {
+      const response = await fetch('/api/workflow/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workflow),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        toast({
+          title: "Workflow saved",
+          description: `ID: ${result.workflowId}`,
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast({
+        title: "Save Error",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="h-[600px]">
       <div className="mb-4">
-        <div className="flex space-x-2">
+        <input
+          type="text"
+          placeholder="Workflow Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="border p-2"
+        />
+        <div className="flex space-x-2 mt-2">
           <div
             className="border p-2 cursor-move"
             onDragStart={(event) =>
@@ -175,7 +217,7 @@ export default function WorkflowBuilder() {
 
 function FilterDataNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-white text-black">
+    <div className="border p-2 rounded bg-white text-black dark:bg-gray-800 dark:text-white">
       <Handle type="target" position={Position.Top} />
       <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
@@ -185,7 +227,7 @@ function FilterDataNode({ data }: { data: { label: string } }) {
 
 function WaitNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-white text-black">
+    <div className="border p-2 rounded bg-white text-black dark:bg-gray-800 dark:text-white">
       <Handle type="target" position={Position.Top} />
       <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
@@ -195,7 +237,7 @@ function WaitNode({ data }: { data: { label: string } }) {
 
 function ConvertFormatNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-white text-black">
+    <div className="border p-2 rounded bg-white text-black dark:bg-gray-800 dark:text-white">
       <Handle type="target" position={Position.Top} />
       <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />
@@ -205,7 +247,7 @@ function ConvertFormatNode({ data }: { data: { label: string } }) {
 
 function SendPostRequestNode({ data }: { data: { label: string } }) {
   return (
-    <div className="border p-2 rounded bg-white text-black">
+    <div className="border p-2 rounded bg-white text-black dark:bg-gray-800 dark:text-white">
       <Handle type="target" position={Position.Top} />
       <p>{data.label}</p>
       <Handle type="source" position={Position.Bottom} />

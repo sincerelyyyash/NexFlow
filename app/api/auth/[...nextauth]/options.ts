@@ -1,83 +1,48 @@
 
-import { NextAuthOptions, DefaultUser } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from 'bcryptjs';
-import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/schemas/userSchema";
-
-interface CustomUser extends DefaultUser {
-  _id: string;
-}
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import User from '@/schemas/userSchema';
+import dbConnect from '@/lib/dbConnect';
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "user@example.com" },
-        password: { label: "Password", type: "password" },
-        name: { label: "Name", type: "text", placeholder: "John Doe" },
-        isSignup: { label: "SignUp", type: "boolean" },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials) {
         await dbConnect();
 
-        const { email, password, name, isSignup } = credentials;
+        const user = await User.findOne({ email: credentials?.email });
 
-        try {
-          if (isSignup) {
-            const existingUser = await UserModel.findOne({ email }).exec();
-            if (existingUser) {
-              throw new Error("User already exists with this email.");
-            }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            const newUser = await UserModel.create({
-              email,
-              password: hashedPassword,
-              name,
-            });
-
-            return {
-              _id: newUser._id.toString(),
-              email: newUser.email,
-              name: newUser.name,
-              image: newUser.image,
-            } as CustomUser;
-          } else {
-            const user = await UserModel.findOne({ email }).exec();
-
-            if (!user) {
-              throw new Error("No user found with this email.");
-            }
-
-            const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-            if (isPasswordCorrect) {
-              return {
-                _id: user._id.toString(),
-                email: user.email,
-                name: user.name,
-                image: user.image,
-              } as CustomUser;
-            } else {
-              throw new Error("Incorrect password.");
-            }
-          }
-        } catch (error: any) {
-          throw new Error(error.message);
+        if (user && user.password === credentials?.password) {
+          return {
+            id: user._id.toString(),  // Ensure the `id` is returned as a string
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
         }
+
+        return null;
       },
     }),
   ],
-  pages: {
-    signIn: '/signin',
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token?.id) {
+        session.user.id = token.id;
+      }
+      return session;
+    },
   },
-  session: {
-    strategy: 'jwt',
-  },
-  secret: process.env.NEXT_AUTH_SECRET,
 };
 
